@@ -1,0 +1,181 @@
+# Informe Final
+
+## Proyecto 1: Clasificación de Contaminación en Imágenes
+
+---
+
+## 1. Introducción
+
+En procesos de manufactura, la inspección visual es una etapa crítica para garantizar la calidad del producto final. Tradicionalmente, esta tarea se realiza de forma manual, lo que puede introducir errores humanos y falta de consistencia.
+
+En este proyecto se desarrolla un sistema automatizado de clasificación de imágenes utilizando técnicas de aprendizaje automático clásico, con el objetivo de detectar la presencia de contaminaciones (granos de arroz) en una línea de producción simulada.
+
+---
+
+## 2. Objetivo
+
+Diseñar e implementar un sistema completo que permita:
+
+* Detectar la presencia de contaminaciones en imágenes
+* Procesar imágenes en formato binario
+* Entrenar modelos de clasificación clásicos
+* Evaluar su desempeño
+* Exportar el mejor modelo para uso posterior
+
+---
+
+## 3. Recolección de Datos
+
+El dataset fue generado manualmente simulando una línea de producción utilizando un fondo blanco.
+
+Se capturaron imágenes bajo dos condiciones:
+
+* **Positivas (label = 1):** imágenes con presencia de granos de arroz
+* **Negativas (label = 0):** imágenes sin arroz o con otros objetos
+
+### Cantidad de datos:
+
+* Total: 30 imágenes
+* Positivas: 15
+* Negativas: 15
+
+### Variaciones:
+
+* Cambios leves en iluminación
+* Diferentes posiciones del objeto
+* Variación en tamaño y orientación del arroz
+
+---
+
+## 4. Preprocesamiento
+
+Cada imagen fue procesada mediante los siguientes pasos:
+
+1. Redimensionamiento a 128×128 píxeles
+2. Conversión a escala de grises
+3. Binarización mediante umbral fijo (threshold = 180):
+
+   * 1 → fondo blanco
+   * 0 → presencia de objeto
+4. Vectorización (flatten) para convertir la imagen en un vector de 16384 características
+
+Finalmente, se construyó un dataset donde:
+
+* Cada fila representa una imagen
+* La última columna corresponde a la etiqueta
+
+Dimensión final del dataset:
+
+```text
+(30, 16385)
+```
+
+---
+
+## 5. Metodología
+
+Se entrenaron distintos modelos de clasificación supervisada:
+
+* K-Nearest Neighbors (KNN)
+* Support Vector Machine (SVM)
+* Naive Bayes
+* Árbol de Decisión
+
+### División de datos:
+
+* 80% entrenamiento
+* 20% prueba
+
+### Métrica utilizada:
+
+* Accuracy
+
+---
+
+## 6. Resultados
+
+Los resultados obtenidos fueron:
+
+| Modelo        | Accuracy |
+| ------------- | -------- |
+| KNN           | 0.6667   |
+| SVM           | 1.0000   |
+| Naive Bayes   | 1.0000   |
+| Decision Tree | 0.8333   |
+
+---
+
+## 7. Análisis de Resultados
+
+El modelo SVM y Naive Bayes obtuvieron un accuracy del 100%, lo cual indica una separación completa de las clases en el conjunto de prueba.
+
+Sin embargo, debido al tamaño reducido del dataset (30 imágenes), existe una alta probabilidad de **sobreajuste (overfitting)**. Esto implica que el modelo puede no generalizar adecuadamente a nuevos datos.
+
+El modelo SVM fue seleccionado como el mejor debido a:
+
+* Buen desempeño en espacios de alta dimensionalidad
+* Capacidad de generalización
+* Robustez frente a datos binarios
+
+---
+
+## 8. Limitaciones
+
+El sistema presenta varias limitaciones:
+
+* Dataset muy pequeño
+* Poca variabilidad en condiciones de iluminación
+* Fondo uniforme (blanco)
+* Sensibilidad a ruido y desenfoque (blur)
+* Posible confusión con objetos similares al arroz
+
+---
+
+## 9. Consideraciones Éticas y de Seguridad
+
+* El modelo puede presentar sesgos debido a condiciones controladas de adquisición
+* No es adecuado para entornos industriales reales sin validación adicional
+* Puede fallar en presencia de iluminación extrema o fondos distintos
+
+---
+
+## 10. Reproducibilidad
+
+Para reproducir los resultados:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python pipeline.py
+```
+
+El modelo final se guarda como:
+
+```text
+C21928_Fabricio_Phillips.joblib
+```
+
+---
+
+## 11. Conclusiones
+
+Se logró desarrollar un sistema completo de clasificación de imágenes utilizando aprendizaje automático clásico.
+
+El modelo SVM demostró el mejor desempeño en el conjunto de prueba, alcanzando un accuracy del 100%. Sin embargo, el tamaño reducido del dataset limita la capacidad de generalización del sistema.
+
+Este proyecto evidencia la importancia de contar con datos suficientes y variados para aplicaciones reales de visión por computadora.
+
+---
+
+## 12. Trabajo Futuro
+
+Se proponen las siguientes mejoras:
+
+* Aumentar el tamaño del dataset
+* Incorporar mayor variabilidad de iluminación
+* Utilizar técnicas de reducción de dimensionalidad (PCA)
+* Implementar validación cruzada
+* Evaluar modelos más robustos
+
+---
