@@ -1,0 +1,121 @@
+from PIL import Image
+import numpy as np
+import os
+
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+import joblib
+
+# =====================
+# CONFIG
+# =====================
+folder_pos = "contaminacion_positiva"
+folder_neg = "contaminacion_negativa"
+
+THRESHOLD = 180
+IMG_SIZE = (128, 128)
+
+data = []
+labels = []
+
+# =====================
+# FUNCION DE PROCESAMIENTO
+# =====================
+def process_image(path):
+    img = Image.open(path).convert("L")
+    img = img.resize(IMG_SIZE)
+
+    img_array = np.array(img)
+
+    # binarización: 1 = blanco, 0 = objeto
+    binary = (img_array > THRESHOLD).astype(int)
+
+    return binary.flatten()
+
+# =====================
+# POSITIVOS (label = 1)
+# =====================
+for filename in os.listdir(folder_pos):
+    if filename.lower().endswith((".png", ".jpg", ".jpeg")):
+
+        path = os.path.join(folder_pos, filename)
+        vector = process_image(path)
+
+        data.append(vector)
+        labels.append(1)
+
+# =====================
+# NEGATIVOS (label = 0)
+# =====================
+for filename in os.listdir(folder_neg):
+    if filename.lower().endswith((".png", ".jpg", ".jpeg")):
+
+        path = os.path.join(folder_neg, filename)
+        vector = process_image(path)
+
+        data.append(vector)
+        labels.append(0)
+
+# =====================
+# DATASET
+# =====================
+X = np.array(data)
+y = np.array(labels)
+
+dataset = np.column_stack((X, y))
+np.savetxt("dataset.csv", dataset, delimiter=",", fmt="%d")
+
+print("Dataset creado:", dataset.shape)
+
+# =====================
+# TRAIN / TEST
+# =====================
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# =====================
+# MODELOS
+# =====================
+models = {
+    "KNN": KNeighborsClassifier(n_neighbors=3),
+    "SVM": SVC(kernel="linear"),
+    "NaiveBayes": GaussianNB(),
+    "DecisionTree": DecisionTreeClassifier()
+}
+
+results = {}
+trained_models = {}
+
+print("\nResultados:")
+
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    acc = accuracy_score(y_test, y_pred)
+    results[name] = acc
+    trained_models[name] = model
+
+    print(f"{name}: {acc:.4f}")
+
+# =====================
+# MEJOR MODELO
+# =====================
+best_model_name = max(results, key=results.get)
+best_model = trained_models[best_model_name]
+
+print("\nMejor modelo:", best_model_name)
+
+# =====================
+# GUARDAR MODELO
+# =====================
+filename = "C21928_Fabricio_Phillips.joblib"
+joblib.dump(best_model, filename)
+
+print("Modelo guardado como:", filename)
