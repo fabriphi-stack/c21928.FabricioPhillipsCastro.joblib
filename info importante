@@ -1,0 +1,14 @@
+# Proyecto Clasificación de Contaminación
+
+## Requisitos
+pip install numpy scikit-learn pillow joblib
+
+## Ejecutar
+python pipeline.py
+
+## Salida
+- dataset.csv
+- modelo .joblib
+
+## Uso del modelo
+Se puede cargar con joblib para predicción futura. 
