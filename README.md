@@ -21,10 +21,10 @@ Fuera de alcance:
 
 ## Data summary
 
-Dataset de 60 imágenes:
+Dataset de 30 imágenes:
 
-* 30 positivas
-* 30 negativas
+* 15 positivas
+* 15 negativas
 
 Variaciones en iluminación y posición.
 
