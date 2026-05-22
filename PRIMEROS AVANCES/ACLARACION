@@ -1,0 +1,3 @@
+Este repositorio fue modificado debido a que la estructura inicial tuvo un problema de manejo de branches a la hora de hacer el commit desde la terminal de bash, por ende toda esta sección contiene los documentos iniciales
+para asi mantener track de cuando se hicieron los documentos y comprobación de cumplimieto de fechas de entrega, sin embargo algunos documentos como los scripts de python cambiaron su estrcutura en sentido de que se adaptó el código 
+para que este pueda ser reproducido globalmente sin necesidad de que este se guarde dentro de una carpeta. 
