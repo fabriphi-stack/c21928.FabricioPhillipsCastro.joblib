@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Final - IE0435 Proyecto 1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+body { font-family: Georgia, serif; max-width: 900px; margin: 0 auto; padding: 2rem; background: #fff; color: #1a1a1a; line-height: 1.7; }
+h1 { font-size: 1.6rem; font-weight: 700; border-bottom: 2px solid #1a1a1a; padding-bottom: 0.5rem; margin-top: 2.5rem; }
+h2 { font-size: 1.2rem; font-weight: 700; margin-top: 2rem; }
+h3 { font-size: 1rem; font-weight: 700; margin-top: 1.5rem; }
+.meta { font-size: 0.9rem; color: #555; margin-bottom: 2rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+.chart-box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 1.2rem; }
+.chart-box h3 { margin-top: 0; font-size: 0.95rem; color: #333; }
+.chart-wrap { position: relative; width: 100%; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+th { background: #1a1a1a; color: #fff; padding: 8px 12px; text-align: left; }
+td { padding: 7px 12px; border-bottom: 1px solid #ddd; }
+tr:nth-child(even) td { background: #f5f5f5; }
+.best { font-weight: 700; color: #1a6b3a; }
+.highlight { background: #fffbe6; border-left: 4px solid #f0b429; padding: 0.8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.conclusion { background: #f0f8f0; border-left: 4px solid #2d7a47; padding: 0.8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; }
+.badge-svm { background: #dbeafe; color: #1d4ed8; }
+.badge-knn { background: #fef3c7; color: #92400e; }
+.badge-gnb { background: #d1fae5; color: #065f46; }
+.badge-dt  { background: #ede9fe; color: #5b21b6; }
+@media print { body { padding: 1rem; } }
+</style>
+</head>
+<body>
+
+<h1>Informe Final — Proyecto 1: Clasificación de Contaminaciones en Línea de Producción Simulada</h1>
+<div class="meta">
+  <strong>Curso:</strong> IE0435 — Machine Learning &nbsp;|&nbsp;
+  <strong>Estudiante:</strong> Fabricio Phillips Castro &nbsp;|&nbsp;
+  <strong>Carné:</strong> C21928 &nbsp;|&nbsp;
+  <strong>Universidad de Costa Rica</strong> &nbsp;|&nbsp;
+  <strong>Semestre:</strong> I-2026
+</div>
+
+<h1>1. Resumen ejecutivo</h1>
+<p>
+  Este proyecto desarrolló un sistema de clasificación binaria para detectar granos de arroz (contaminaciones positivas) en imágenes de una línea de producción simulada. Se compararon cuatro algoritmos de aprendizaje automático clásico — SVM lineal, KNN (k=3), Naive Bayes Gaussiano y Árbol de Decisión — sobre tres datasets independientes recolectados por distintos miembros del grupo.
+</p>
+<p>
+  El modelo ganador de cada persona fue seleccionado por accuracy sobre un conjunto de prueba con partición 80/20. Los tres mejores modelos exportados corresponden a: <strong>SVM lineal</strong> (dataset PERSONAL), <strong>KNN k=3</strong> (persona 2) y <strong>Gaussian Naive Bayes</strong> (persona 3).
+</p>
+
+<div class="highlight">
+  <strong>Resultado clave:</strong> los tres algoritmos ganadores difieren, lo que sugiere que la elección del "mejor modelo" es sensible al tamaño y características del dataset de cada persona, no solo al algoritmo en sí.
+</div>
+
+<h1>2. Descripción del problema</h1>
+<p>
+  En manufactura, la inspección visual automatizada busca detectar defectos para reducir el error humano y asegurar calidad. En este proyecto se simuló una línea de producción con una hoja blanca como fondo. Los objetos de interés son granos de arroz (<em>clase positiva</em>) que caen sobre la hoja; la clase negativa incluye imágenes con clips, aros u objetos similares, o la hoja vacía.
+</p>
+<p>
+  Cada imagen fue convertida a escala de grises, redimensionada a 128×128 píxeles y umbralizada (píxel = 1 si valor &gt; 180, cero si ≤ 180), produciendo un vector de 16,384 características binarias.
+</p>
+
+<h1>3. Dataset</h1>
+
+<h2>3.1 Composición por dataset</h2>
+<div class="grid2">
+  <div class="chart-box">
+    <h3>Distribución de muestras por dataset</h3>
+    <div class="chart-wrap" style="height:220px"><canvas id="chartDataset" role="img" aria-label="Gráfico de barras con cantidad de muestras por dataset y clase">Dataset PERSONAL: 24 entrenamiento / 6 prueba. Persona 2: 21 entrenamiento / 5 prueba. Persona 3: 24 entrenamiento / 6 prueba.</canvas></div>
+  </div>
+  <div class="chart-box">
+    <h3>Balance de clases en entrenamiento</h3>
+    <div class="chart-wrap" style="height:220px"><canvas id="chartBalance" role="img" aria-label="Gráfico de barras con positivos y negativos en entrenamiento">Persona 3 tiene 12 positivos y 12 negativos. Los otros datasets tienen distribución estimada.</canvas></div>
+  </div>
+</div>
+
+<table>
+  <tr><th>Dataset</th><th>Total imágenes</th><th>Train (80%)</th><th>Test (20%)</th><th>Positivas train</th><th>Negativas train</th></tr>
+  <tr><td>PERSONAL</td><td>~30–55</td><td>≥41</td><td>~10</td><td>24 (SVs pos)</td><td>17 (SVs neg)</td></tr>
+  <tr><td>Persona 2</td><td>~26</td><td>21</td><td>~5</td><td>estimado ~10</td><td>estimado ~11</td></tr>
+  <tr><td>Persona 3</td><td>~30</td><td>24</td><td>~6</td><td>12</td><td>12</td></tr>
+</table>
+
+<h2>3.2 Preprocesamiento</h2>
+<p>
+  Pipeline común para los tres datasets: conversión a escala de grises → redimensionado 128×128 → umbralización binaria (umbral=180) → aplanado a vector de 16,384 valores → etiqueta al final del vector (1=arroz, 0=negativo).
+</p>
+
+<h1>4. Modelos evaluados</h1>
+<p>
+  Para cada dataset se entrenaron y evaluaron cuatro modelos con los mismos hiperparámetros base, usando partición estratificada 80/20 con <code>random_state=42</code>:
+</p>
+<table>
+  <tr><th>Modelo</th><th>Hiperparámetros</th></tr>
+  <tr><td><span class="badge badge-knn">KNN</span></td><td>k=3, distancia Minkowski p=2, pesos uniformes</td></tr>
+  <tr><td><span class="badge badge-svm">SVM</span></td><td>kernel lineal, C=1.0, random_state=42</td></tr>
+  <tr><td><span class="badge badge-gnb">Naive Bayes</span></td><td>GaussianNB, var_smoothing=1e-9, priors estimados de datos</td></tr>
+  <tr><td><span class="badge badge-dt">Árbol de Decisión</span></td><td>CART, random_state=42, sin restricción de profundidad</td></tr>
+</table>
+
+<h1>5. Resultados comparativos</h1>
+
+<h2>5.1 Mejor modelo por dataset</h2>
+<table>
+  <tr><th>Dataset</th><th>Mejor modelo</th><th>Algoritmo seleccionado</th><th>Evidencia estructural</th></tr>
+  <tr>
+    <td>PERSONAL</td>
+    <td class="best"><span class="badge badge-svm">SVM lineal</span></td>
+    <td>SVC kernel='linear', C=1.0</td>
+    <td>41 vectores de soporte (17 neg, 24 pos)</td>
+  </tr>
+  <tr>
+    <td>Persona 2</td>
+    <td class="best"><span class="badge badge-knn">KNN k=3</span></td>
+    <td>KNeighborsClassifier(n_neighbors=3)</td>
+    <td>21 muestras almacenadas en entrenamiento</td>
+  </tr>
+  <tr>
+    <td>Persona 3</td>
+    <td class="best"><span class="badge badge-gnb">Naive Bayes</span></td>
+    <td>GaussianNB(var_smoothing=1e-9)</td>
+    <td>24 muestras train (12 pos + 12 neg, balanceado)</td>
+  </tr>
+</table>
+
+<h2>5.2 Comparación de características de los modelos ganadores</h2>
+<div class="grid2">
+  <div class="chart-box">
+    <h3>Tamaño del conjunto de entrenamiento</h3>
+    <div class="chart-wrap" style="height:200px"><canvas id="chartTrain" role="img" aria-label="Gráfico de barras con tamaño del conjunto de entrenamiento por dataset">PERSONAL: 41+, Persona 2: 21, Persona 3: 24.</canvas></div>
+  </div>
+  <div class="chart-box">
+    <h3>Complejidad del modelo (estimada)</h3>
+    <div class="chart-wrap" style="height:200px"><canvas id="chartComplex" role="img" aria-label="Gráfico de radar de complejidad de modelos">Comparación de dimensiones de complejidad por modelo.</canvas></div>
+  </div>
+</div>
+
+<h2>5.3 Comparación cualitativa de algoritmos</h2>
+<div style="overflow-x:auto">
+<table>
+  <tr>
+    <th>Criterio</th>
+    <th><span class="badge badge-svm">SVM</span></th>
+    <th><span class="badge badge-knn">KNN</span></th>
+    <th><span class="badge badge-gnb">Naive Bayes</span></th>
+    <th><span class="badge badge-dt">Árbol Decisión</span></th>
+  </tr>
+  <tr>
+    <td>Funciona con datos pequeños</td>
+    <td>✅ Sí</td><td>✅ Sí</td><td>✅ Sí</td><td>⚠️ Sobreajuste</td>
+  </tr>
+  <tr>
+    <td>Robusto a alta dimensionalidad</td>
+    <td>✅ Bueno</td><td>❌ Maldición dim.</td><td>⚠️ Supuesto ind.</td><td>⚠️ Sobreajuste</td>
+  </tr>
+  <tr>
+    <td>Velocidad de inferencia</td>
+    <td>⚡ Rápido</td><td>🐢 Lento (busca vecinos)</td><td>⚡ Muy rápido</td><td>⚡ Muy rápido</td>
+  </tr>
+  <tr>
+    <td>Interpretabilidad</td>
+    <td>❌ Baja</td><td>⚠️ Media</td><td>⚠️ Media</td><td>✅ Alta</td>
+  </tr>
+  <tr>
+    <td>Costo de entrenamiento</td>
+    <td>⚠️ Medio (110 iter.)</td><td>⚡ Cero (lazy)</td><td>⚡ Muy bajo</td><td>⚠️ Medio</td>
+  </tr>
+  <tr>
+    <td>Sensible a escala de features</td>
+    <td>✅ No (lineal, binario)</td><td>❌ Sí</td><td>✅ No</td><td>✅ No</td>
+  </tr>
+</table>
+</div>
+
+<div class="grid2" style="margin-top:1.5rem">
+  <div class="chart-box">
+    <h3>Características de modelos ganadores (radar)</h3>
+    <div class="chart-wrap" style="height:270px"><canvas id="chartRadar" role="img" aria-label="Gráfico radar que compara SVM, KNN y Naive Bayes en varias dimensiones">Comparación multidimensional de los tres modelos ganadores.</canvas></div>
+  </div>
+  <div class="chart-box">
+    <h3>Vectores de soporte SVM por clase</h3>
+    <div class="chart-wrap" style="height:270px"><canvas id="chartSVM" role="img" aria-label="Gráfico de dona con proporción de vectores de soporte negativos y positivos en el SVM">SVM: 17 vectores negativos y 24 positivos.</canvas></div>
+  </div>
+</div>
+
+<h1>6. Análisis y discusión</h1>
+
+<h2>6.1 Por qué el SVM ganó en el dataset PERSONAL</h2>
+<p>
+  El SVM lineal con C=1.0 es un buen candidato cuando el espacio de características es de alta dimensionalidad y los datos son relativamente linealmente separables. Con 16,384 características binarias y un dataset más amplio que el de las otras personas, el SVM pudo encontrar un hiperplano de separación robusto. Los 41 vectores de soporte (17 negativos y 24 positivos) indican un margen bien definido, con un ligero desbalance hacia la clase positiva, lo cual es consistente con un dataset donde los positivos son más variados visualmente.
+</p>
+
+<h2>6.2 Por qué el KNN ganó en el dataset de persona 2</h2>
+<p>
+  Con solo 21 muestras de entrenamiento, KNN k=3 puede funcionar bien si las imágenes están suficientemente bien distribuidas en el espacio de características. Sin embargo, con un conjunto de prueba tan pequeño (~5 muestras), la métrica de accuracy tiene alta varianza y baja confiabilidad estadística. Es probable que KNN haya ganado en este dataset particular por azar o por una distribución favorable de los datos, más que por superioridad algorítmica.
+</p>
+
+<h2>6.3 Por qué Naive Bayes ganó en el dataset de persona 3</h2>
+<p>
+  El dataset de persona 3 está perfectamente balanceado (12 muestras por clase en entrenamiento), lo que favorece a Naive Bayes. Aunque los supuestos de independencia entre píxeles y distribución Gaussiana no son estrictamente correctos para imágenes binarizadas, GNB es conocido por funcionar bien en espacios de alta dimensión con datos escasos, precisamente porque estima los parámetros de cada clase de forma independiente. Con 24 muestras balanceadas, las estimaciones de media por clase (theta_) son más estables que con datos desbalanceados.
+</p>
+
+<h2>6.4 Limitaciones generales del sistema</h2>
+<p>
+  El mayor limitante del sistema es el tamaño del dataset (20–55 imágenes por persona) en relación con la dimensionalidad del espacio de características (16,384). Esta situación — alta dimensionalidad, pocas muestras — es el escenario clásico donde todos los clasificadores clásicos son propensos a sobreajuste o a métricas poco representativas. El conjunto de prueba de 5–6 muestras no permite sacar conclusiones estadísticamente robustas.
+</p>
+
+<h1>7. Conclusiones</h1>
+<div class="conclusion">
+  <strong>1.</strong> Los tres modelos ganadores son algoritmos distintos (SVM, KNN, GNB), lo que indica que no hay un "mejor algoritmo universal" para este problema; la elección óptima depende del dataset específico.
+</div>
+<div class="conclusion">
+  <strong>2.</strong> El SVM lineal es la elección más fundamentada teóricamente para este problema (alta dimensión, datos binarios), pero requiere un dataset de tamaño adecuado para generalizarse bien.
+</div>
+<div class="conclusion">
+  <strong>3.</strong> La métrica de accuracy sobre conjuntos de prueba tan pequeños (5–6 muestras) es poco confiable. Un análisis más robusto requeriría validación cruzada (k-fold) o un dataset considerablemente mayor.
+</div>
+<div class="conclusion">
+  <strong>4.</strong> El sistema cumple el objetivo académico de demostrar el pipeline completo de ML aplicado a visión: recolección → preprocesamiento → vectorización → entrenamiento → evaluación → exportación.
+</div>
+<div class="conclusion">
+  <strong>5.</strong> Para un sistema de producción real, se recomendaría aumentar el dataset a &gt;200 imágenes por clase, explorar PCA o extracción de características (HOG, LBP) para reducir dimensionalidad, y evaluar con métricas adicionales como AUC-ROC y F1-score ponderado.
+</div>
+
+<h1>8. Referencias</h1>
+<ul>
+  <li>Pedregosa et al. (2011). Scikit-learn: Machine Learning in Python. JMLR 12, pp. 2825–2830.</li>
+  <li>Bishop, C.M. (2006). Pattern Recognition and Machine Learning. Springer.</li>
+  <li>Hastie, T., Tibshirani, R., Friedman, J. (2009). The Elements of Statistical Learning. Springer.</li>
+  <li>Python Imaging Library (Pillow) documentation: https://pillow.readthedocs.io</li>
+</ul>
+
+<script>
+const COLORS = {
+  svm: '#1d4ed8',
+  knn: '#92400e',
+  gnb: '#065f46',
+  dt:  '#5b21b6',
+  neg: '#94a3b8',
+  pos: '#f59e0b'
+};
+
+// Chart 1: Dataset sizes
+new Chart(document.getElementById('chartDataset'), {
+  type: 'bar',
+  data: {
+    labels: ['PERSONAL','Persona 2','Persona 3'],
+    datasets: [
+      { label: 'Entrenamiento', data: [41, 21, 24], backgroundColor: '#3b82f6', borderRadius: 4 },
+      { label: 'Prueba', data: [10, 5, 6], backgroundColor: '#93c5fd', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+    scales: {
+      x: { stacked: true, ticks: { font: { size: 11 } } },
+      y: { stacked: true, ticks: { font: { size: 11 } }, title: { display: true, text: 'Muestras', font: { size: 11 } } }
+    }
+  }
+});
+
+// Chart 2: Class balance
+new Chart(document.getElementById('chartBalance'), {
+  type: 'bar',
+  data: {
+    labels: ['PERSONAL','Persona 2','Persona 3'],
+    datasets: [
+      { label: 'Positivos (arroz)', data: [24, 10, 12], backgroundColor: COLORS.pos, borderRadius: 4,
+        borderWidth: 2, borderDash: [4,2] },
+      { label: 'Negativos', data: [17, 11, 12], backgroundColor: COLORS.neg, borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+    scales: {
+      x: { ticks: { font: { size: 11 } } },
+      y: { ticks: { font: { size: 11 } }, title: { display: true, text: 'Muestras', font: { size: 11 } } }
+    }
+  }
+});
+
+// Chart 3: Training size
+new Chart(document.getElementById('chartTrain'), {
+  type: 'bar',
+  data: {
+    labels: ['PERSONAL\n(SVM)', 'Persona 2\n(KNN)', 'Persona 3\n(GNB)'],
+    datasets: [{
+      label: 'Muestras entrenamiento',
+      data: [41, 21, 24],
+      backgroundColor: [COLORS.svm, COLORS.knn, COLORS.gnb],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+      x: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Chart 4: Radar comparison
+new Chart(document.getElementById('chartRadar'), {
+  type: 'radar',
+  data: {
+    labels: ['Robustez\nalta dim.','Velocidad\ninferencia','Capacidad\ndatos escasos','Generalización\nestimada','Interpretabilidad'],
+    datasets: [
+      { label: 'SVM (PERSONAL)',
+        data: [5, 4, 4, 5, 2],
+        backgroundColor: 'rgba(29,78,216,0.15)',
+        borderColor: COLORS.svm, pointBackgroundColor: COLORS.svm, pointRadius: 4, borderWidth: 2 },
+      { label: 'KNN (P2)',
+        data: [2, 2, 4, 3, 3],
+        backgroundColor: 'rgba(146,64,14,0.15)',
+        borderColor: COLORS.knn, pointBackgroundColor: COLORS.knn, pointRadius: 4, borderWidth: 2 },
+      { label: 'GNB (P3)',
+        data: [3, 5, 5, 4, 3],
+        backgroundColor: 'rgba(6,95,70,0.15)',
+        borderColor: COLORS.gnb, pointBackgroundColor: COLORS.gnb, pointRadius: 4, borderWidth: 2 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } },
+    scales: { r: { beginAtZero: true, max: 5, ticks: { stepSize: 1, font: { size: 9 } },
+      pointLabels: { font: { size: 9 } } } }
+  }
+});
+
+// Chart 5: SVM support vectors
+new Chart(document.getElementById('chartSVM'), {
+  type: 'doughnut',
+  data: {
+    labels: ['SVs Negativos (17)', 'SVs Positivos (24)'],
+    datasets: [{
+      data: [17, 24],
+      backgroundColor: [COLORS.neg, COLORS.pos],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } },
+      tooltip: { callbacks: {
+        label: (ctx) => `${ctx.label}: ${ctx.raw} vectores (${Math.round(ctx.raw/41*100)}%)`
+      }}
+    },
+    cutout: '60%'
+  }
+});
+</script>
+</body>
+</html>
